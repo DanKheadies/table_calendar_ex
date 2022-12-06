@@ -20,17 +20,118 @@ class Event {
   String toString() => title;
 }
 
+class Event2 {
+  final String title;
+  final int id;
+
+  const Event2({
+    required this.title,
+    required this.id,
+  });
+
+  // @override
+  // String toString() => title;
+}
+
 /// Example events.
 ///
 /// Using a [LinkedHashMap] is highly recommended if you decide to use a map.
 final kEvents = LinkedHashMap<DateTime, List<Event>>(
   equals: isSameDay,
   hashCode: getHashCode,
-)..addAll(_kEventSource);
+// )..addAll(_kEventSource);
+);
+
+final kEvents2 = LinkedHashMap<DateTime, List<Event2>>(
+  equals: isSameDay,
+  hashCode: getHashCode,
+);
+
 // final kEvents2 = LinkedHashMap<DateTime, List<Event>>(
 //   equals: isSameDay,
 //   hashCode: getHashCode,
-// );
+// )..addAll(_kEventSource2);
+
+Map<DateTime, List<Event2>> derp2 = {
+  DateTime.now().add(const Duration(days: 5)): [
+    const Event2(
+      title: 'Event 19 | 1',
+      id: 1,
+    ),
+  ],
+  DateTime.parse('2022-12-06T00:00:00-0000'): [
+    const Event2(
+      title: 'Event 1 | 1',
+      id: 2,
+    ),
+    const Event2(
+      title: 'Event 1 | 2',
+      id: 3,
+    ),
+  ],
+}..addAll(
+    {
+      kToday: [
+        const Event2(
+          title: 'Today\'s Event 12',
+          id: 100,
+        ),
+        const Event2(
+          title: 'Today\'s Event 23',
+          id: 99,
+        ),
+      ],
+    },
+  );
+
+Map<DateTime, List<Event>> derp = {
+  DateTime.now(): [
+    const Event('Event 19 | 1'),
+  ],
+  DateTime.parse('2022-12-06T00:00:00-0000'): [
+    const Event('Event 1 | 1'),
+    const Event('Event 1 | 2'),
+  ],
+  DateTime.parse('2022-12-10 00:00:00'): [
+    const Event('Event 2 | 1'),
+    const Event('Event 2 | 2'),
+    const Event('Event 2 | 3'),
+  ],
+  DateTime.parse('2022-12-15'): [
+    const Event('Event 3 | 1'),
+    const Event('Event 3 | 2'),
+    const Event('Event 3 | 3'),
+    const Event('Event 3 | 4'),
+  ],
+  DateTime.parse('2022-12-20T00Z'): [
+    const Event('Event 4 | 1'),
+  ],
+}..addAll(
+    {
+      kToday: [
+        const Event('Today\'s Event 12'),
+        const Event('Today\'s Event 23'),
+      ],
+    },
+  );
+
+final kEventSource = Map.fromIterable(
+  List.generate(50, (index) => index),
+  key: (item) => DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5),
+  value: (item) => List.generate(
+    item % 4 + 1,
+    (index) => Event(
+      'Event $item | ${index + 1}',
+    ),
+  ),
+)..addAll(
+    {
+      kToday: [
+        const Event('Today\'s Event 1'),
+        const Event('Today\'s Event 2'),
+      ],
+    },
+  );
 
 final _kEventSource = Map.fromIterable(
   List.generate(50, (index) => index),
@@ -51,10 +152,10 @@ final _kEventSource = Map.fromIterable(
 // final _kEventSource2 = getCruiseCallAPI();
 
 // Future<List> getCruiseCallAPI() async {
-Future<Map<DateTime, List<Event>>> getCruiseCallAPI() async {
+Future<Map<DateTime, List<Event2>>> getCruiseCallAPI() async {
   String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String end = DateFormat('yyyy-MM-dd')
-      .format(DateTime.now().add(const Duration(days: 10)));
+      .format(DateTime.now().add(const Duration(days: 10))); // to 60
 
   String key = '';
 
@@ -73,12 +174,12 @@ Future<Map<DateTime, List<Event>>> getCruiseCallAPI() async {
     var json = jsonDecode(response.body);
     // print(json);
     var results = json['data'] as List;
-    print(_kEventSource);
+    // print(_kEventSource);
     var eventDate = '';
 
     for (var pc in results) {
       pc
-        ..remove('portCallId')
+        // ..remove('portCallId')
         ..remove('portCallLink')
         ..remove('vesselId')
         ..remove('operator')
@@ -89,7 +190,7 @@ Future<Map<DateTime, List<Event>>> getCruiseCallAPI() async {
         ..remove('hasArrived')
         ..remove('hasDeparted')
         ..remove('imo')
-        ..remove('photoUrl')
+        // ..remove('photoUrl')
         ..remove('shipLengthM')
         ..remove('shipLengthFT')
         ..remove('shipType')
@@ -108,12 +209,12 @@ Future<Map<DateTime, List<Event>>> getCruiseCallAPI() async {
 
     var resultsMap = groupBy(results, (pc) => pc['eventDate']);
 
-    Map<DateTime, List<Event>> convertedResults = {};
+    Map<DateTime, List<Event2>> convertedResults = {};
     for (var events in resultsMap.keys) {
       // print(resultsMap.keys); // list of datetimes
       // print(resultsMap[events]); // content in array, i.e. key & value
       if (resultsMap[events] != null) {
-        List<Event> vessels = [];
+        List<Event2> vessels = [];
         for (var pc in resultsMap[events]!) {
           // print(pc['vessel']);
           pc
@@ -121,13 +222,18 @@ Future<Map<DateTime, List<Event>>> getCruiseCallAPI() async {
             ..remove('arrivalDateTime')
             ..remove('berth');
 
-          vessels.add(Event(pc['vessel']));
+          vessels.add(
+            Event2(
+              title: pc['vessel'],
+              id: pc['portCallId'],
+            ),
+          );
         }
         convertedResults[events] = vessels;
       }
     }
 
-    print(convertedResults);
+    // print(convertedResults);
     // return results;
     return convertedResults;
   } else {
